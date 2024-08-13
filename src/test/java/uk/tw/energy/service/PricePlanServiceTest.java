@@ -1,6 +1,7 @@
 package uk.tw.energy.service;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,5 +62,13 @@ class PricePlanServiceTest {
                 Arguments.of(12, 45.10),
                 Arguments.of(7, 19.52)
         );
+    }
+
+    @Test
+    public void givenNoReadingsShouldReturnZeroCost() {
+        meterReadingService.storeReadings("smart-meter-id", List.of());
+
+        BigDecimal result = pricePlanService.getConsumptionCostForPastDays("smart-meter-id", 1, pricePlan.getPlanName());
+        assertThat(result).isEqualTo(BigDecimal.ZERO);
     }
 }
