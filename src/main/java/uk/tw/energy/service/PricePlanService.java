@@ -88,20 +88,7 @@ public class PricePlanService {
                 .minus(Duration.ofDays(days))
                 .atZone(ZoneId.systemDefault()).toLocalDate();
 
-        int fromIndex = electricityReadings.size() - 1;
-
-        for (int i = fromIndex; i >= 0; i--) {
-            LocalDate readingDate = electricityReadings.get(i).time().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            boolean dateOutOfBound = readingDate.equals(lastDateToReadExclusive)
-                    || readingDate.isBefore(lastDateToReadExclusive);
-            if (dateOutOfBound) {
-                break;
-            }
-
-            fromIndex = i;
-        }
-
+        int fromIndex = getIndexOfReadingAfterLastDateToRead(electricityReadings, lastDateToReadExclusive);
         List<ElectricityReading> readingsForPastDays = electricityReadings.subList(fromIndex, electricityReadings.size());
 
         BigDecimal average = calculateAverageReading(readingsForPastDays);
@@ -117,5 +104,23 @@ public class PricePlanService {
                 .filter(plan -> plan.getPlanName().equals(pricePlanId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Price plan not found"));
+    }
+
+    private static int getIndexOfReadingAfterLastDateToRead(List<ElectricityReading> electricityReadings, LocalDate lastDateToReadExclusive) {
+        int fromIndex = electricityReadings.size() - 1;
+
+        for (int i = fromIndex; i >= 0; i--) {
+            LocalDate readingDate = electricityReadings.get(i).time().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            boolean dateIsOutOfReadingBounds = readingDate.equals(lastDateToReadExclusive)
+                    || readingDate.isBefore(lastDateToReadExclusive);
+            if (dateIsOutOfReadingBounds) {
+                break;
+            }
+
+            fromIndex = i;
+        }
+
+        return fromIndex;
     }
 }
